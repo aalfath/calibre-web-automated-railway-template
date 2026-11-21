@@ -1,0 +1,13 @@
+#!/usr/bin/with-contenv bash
+# Runs after cwa-init and cwa-auto-library, before the web app starts.
+
+# 1) The library and ingest folders are symlinks into /config, and "chown -R" does not
+#    follow a symlink given on the command line, so fix their ownership here.
+for d in /config/calibre-library /config/cwa-book-ingest; do
+  [ -d "$d" ] && chown -R abc:abc "$d"
+done
+
+# 2) Replace the default admin password and the shared session key (first boot only).
+#    A failure stops the container (S6_BEHAVIOUR_IF_STAGE2_FAILS=2), so the app is never
+#    public with admin/admin123.
+s6-setuidgid abc python3 /etc/railway/first-boot.py
